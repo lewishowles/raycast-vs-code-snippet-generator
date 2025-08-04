@@ -1,5 +1,5 @@
-import { Action, ActionPanel, Form, Toast, showToast } from "@raycast/api";
-import { useForm, FormValidation } from "@raycast/utils";
+import { Action, ActionPanel, Clipboard, Form, Toast, showToast } from "@raycast/api";
+import { useForm } from "@raycast/utils";
 
 interface SnippetFormValues {
 	title: string;
@@ -7,10 +7,16 @@ interface SnippetFormValues {
 	code: string;
 };
 
-export default function Command() {
+/**
+ * Generate a VS Code snippet that can be pasted into a snippet file from a
+ * block of code, title, and prefix.
+ */
+export default async function Command() {
 	const { handleSubmit, itemProps } = useForm<SnippetFormValues>({
-		onSubmit(formValues) {
-			generateSnippet(formValues);
+		async onSubmit(formValues) {
+			const snippet = generateSnippet(formValues);
+
+			await Clipboard.copy(snippet);
 
 			showToast({
 				style: Toast.Style.Success,
@@ -22,11 +28,6 @@ export default function Command() {
 			title: value => {
 				if (!value) {
 					return "Please enter a snippet title";
-				}
-			},
-			prefix: value => {
-				if (!value) {
-					return "Please enter a snippet prefix";
 				}
 			},
 			code: value => {
@@ -60,7 +61,7 @@ export default function Command() {
 		const prefixList = formValues.prefix.split(",").map(p => p.trim());
 		const prefix = prefixList.length > 1 ? `[${prefixList.map(p => `"${p}"`).join(", ")}]` : `"${prefixList[0]}"`;
 
-		const snippet = [
+		return [
 			`"${formValues.title}": {`,
 			`	"prefix": ${prefix},`,
 			"	\"body\": [",
@@ -68,10 +69,6 @@ export default function Command() {
 			"	],",
 			"},",
 		].join("\n");
-
-		console.log(snippet);
-
-		showToast({ title: "Snippet copied", message: "You can now paste it into the appropriate file." });
 	}
 
 	return (

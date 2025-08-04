@@ -1,3 +1,3 @@
-# VS Code Snippet Generator
+# VS Code snippet generator
 
-This tool aims to simplify the process of converting a block of code into something that can be used in a VS Code snippet file, which is often a laborious process.
+A simple Raycast extension to provide quick access to the functionality found in the [VS Code snippet generator](https://lewishowles.github.io/vscode-snippet-generator/), turning a given code snippet into something that can be pasted into a snippet file.

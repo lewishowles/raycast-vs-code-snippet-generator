@@ -1,16 +1,50 @@
-import { Form, ActionPanel, Action, showToast } from "@raycast/api";
+import { Action, ActionPanel, Form, Toast, showToast } from "@raycast/api";
+import { useForm, FormValidation } from "@raycast/utils";
 
-type FormValues = {
+interface SnippetFormValues {
 	title: string;
 	prefix: string;
 	code: string;
 };
 
 export default function Command() {
-	function generateSnippet(formValues: FormValues) {
-		console.log(formValues);
-		showToast({ title: "Snippet copied", message: "You can now paste it into the appropriate file." });
+	const { handleSubmit, itemProps } = useForm<SnippetFormValues>({
+		onSubmit(formValues) {
+			generateSnippet(formValues);
 
+			showToast({
+				style: Toast.Style.Success,
+				title: "Snippet copied",
+				message: "You can now paste it into the appropriate file.",
+			});
+		},
+		validation: {
+			title: value => {
+				if (!value) {
+					return "Please enter a snippet title";
+				}
+			},
+			prefix: value => {
+				if (!value) {
+					return "Please enter a snippet prefix";
+				}
+			},
+			code: value => {
+				if (!value) {
+					return "Please enter the code to convert";
+				}
+			},
+		},
+	});
+
+	/**
+	 * Generate our snippet from the provided form values, and copy the result
+	 * to the clipboard.
+	 *
+	 * @param  {SnippetFormValues}  formValues",
+	 *     The form values from which to generate the snippet.
+	 */
+	function generateSnippet(formValues: SnippetFormValues) {
 		let body = formValues.code;
 
 		// Escape double quotes, unless they're already escaped.
@@ -36,21 +70,23 @@ export default function Command() {
 		].join("\n");
 
 		console.log(snippet);
+
+		showToast({ title: "Snippet copied", message: "You can now paste it into the appropriate file." });
 	}
 
 	return (
 		<Form
 			actions={
 				<ActionPanel>
-					<Action.SubmitForm title="Generate Snippet" onSubmit={generateSnippet} />
+					<Action.SubmitForm title="Generate Snippet" onSubmit={handleSubmit} />
 				</ActionPanel>
 			}
 		>
 			<Form.Description text="Enter your code snippet to convert it." />
-			<Form.TextField id="title" title="Title" />
-			<Form.TextField id="prefix" title="Prefix" info="For multiple prefixes, please comma separate them." />
+			<Form.TextField title="Title" {...itemProps.title} />
+			<Form.TextField title="Prefix" info="For multiple prefixes, please comma separate them." {...itemProps.prefix} />
 			<Form.Separator />
-			<Form.TextArea id="code" title="Code" />
+			<Form.TextArea title="Code" {...itemProps.code} />
 		</Form>
 	);
 }

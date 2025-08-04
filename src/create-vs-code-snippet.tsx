@@ -11,7 +11,7 @@ interface SnippetFormValues {
  * Generate a VS Code snippet that can be pasted into a snippet file from a
  * block of code, title, and prefix.
  */
-export default async function Command() {
+export default function Command() {
 	const { handleSubmit, itemProps } = useForm<SnippetFormValues>({
 		async onSubmit(formValues) {
 			const snippet = generateSnippet(formValues);

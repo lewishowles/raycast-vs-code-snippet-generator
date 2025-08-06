@@ -14,7 +14,11 @@ interface SnippetFormValues {
 export default function Command() {
 	const { handleSubmit, itemProps } = useForm<SnippetFormValues>({
 		async onSubmit(formValues) {
-			const snippet = generateSnippet(formValues);
+			if (typeof formValues !== "object") {
+				return;
+			}
+
+			const snippet = generateSnippet(formValues.title, formValues.prefix, formValues.code);
 
 			await Clipboard.copy(snippet);
 
@@ -42,33 +46,57 @@ export default function Command() {
 	 * Generate our snippet from the provided form values, and copy the result
 	 * to the clipboard.
 	 *
-	 * @param  {SnippetFormValues}  formValues",
-	 *     The form values from which to generate the snippet.
+	 * @param  {string}  title
+	 *     The title of the snippet.
+	 * @param  {string}  prefix
+	 *     The prefix for the snippet.
+	 * @param  {string}  code
+	 *     The code of the snippet.
 	 */
-	function generateSnippet(formValues: SnippetFormValues) {
-		let body = formValues.code;
+	function generateSnippet(title: string, prefix: string, code: string) {
+		if (!isNonEmptyString(code)) {
+			return "";
+		}
 
-		// Escape double quotes, unless they're already escaped.
-		body = body.replace(/"/g, "\\\"");
+		if (!isNonEmptyString(title)) {
+			title = "";
+		}
 
-		// Encode tabs
+		if (!isNonEmptyString(prefix)) {
+			prefix = "";
+		}
+
+		title = title.trim();
+
+		// The format of prefixes depends on whether there is one or more than
+		// one.
+		const prefixList = prefix.split(",").map(prefix => prefix.trim());
+
+		prefix = prefixList.length > 1 ? `[${prefixList.map(prefix => `"${prefix}"`).join(", ")}]` : `"${prefixList[0]}"`;
+
+		// Escape relevant characters in our code snippet.
+		let body = code.replace(/"/g, "\\\"");
 		body = body.replace(/\t/g, "\\t");
-
-		// Wrap each line with a double quote, where it isn't already done.
-		body = body.split("\n").map(line => `		"${line}",`).join("\n");
-
-		// Define our prefixes, depending on if there are one or more.
-		const prefixList = formValues.prefix.split(",").map(p => p.trim());
-		const prefix = prefixList.length > 1 ? `[${prefixList.map(p => `"${p}"`).join(", ")}]` : `"${prefixList[0]}"`;
+		body = body.split("\n").map(line => `\t\t"${line}",`).join("\n");
 
 		return [
-			`"${formValues.title}": {`,
+			`"${title}": {`,
 			`	"prefix": ${prefix},`,
 			"	\"body\": [",
 			body,
 			"	],",
 			"},",
 		].join("\n");
+	}
+
+	/**
+	 * Determine if a given variable is a string, and non-empty.
+	 *
+	 * @param  {mixed}  variable
+	 *     The variable to test.
+	 */
+	function isNonEmptyString(variable: unknown): variable is string {
+		return typeof variable === "string" && variable !== "";
 	}
 
 	return (

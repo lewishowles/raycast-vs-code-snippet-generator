@@ -1,3 +1,31 @@
 # VS Code snippet generator
 
-A simple Raycast extension to provide quick access to the functionality found in the [VS Code snippet generator](https://lewishowles.github.io/vscode-snippet-generator/), turning a given code snippet into something that can be pasted into a snippet file.
+This extension simplifies the process of formatting code as required for a snippet by performing the necessary escaping and formatting automatically.
+
+For example, the following code:
+
+```html
+<div>
+	<label for="input">Input</label>
+	<input type="text" id="input" />
+</div>
+```
+
+And the following inputs:
+
+- Title: Simple input
+- Prefix: input, fi
+
+Will produce the following output
+
+```json
+"Simple input": {
+	"prefix": ["input", "fi"],
+	"body": [
+		"<div>",
+		"\t<label for=\"input\">Input</label>",
+		"\t<input type=\"text\" id=\"input\" />",
+		"</div>",
+	],
+},
+```
